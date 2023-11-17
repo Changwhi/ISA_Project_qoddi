@@ -1,57 +1,58 @@
-import express from 'express';
-import SummaryPipeline from './models/SummaryPipeline.js';
-import TextGeneratorPipeline from './models/TextGeneratorPipeline.js';
+import "dotenv/config";
+import mqtt from "mqtt";
+import { GenerateTopic, SummaryTopic } from "./constants.js";
+import SummaryPipeline from "./models/SummaryPipeline.js";
+import TextGeneratorPipeline from "./models/TextGeneratorPipeline.js";
 
-const port = process.env.PORT || 3000;
-const app = express();
-app.use(express.urlencoded({ extended: true}));
-app.use(express.json());
-
-app.use(function(req, res, next) {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Methods', 'GET, PUT, POST, DELETE, OPTIONS');
-  // res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization,Content-Length, X-Requested-With');
-  next();
-});
-
-app.get("/", (req, res) => {
-  res.send({"Landing page": "Hello world"})
-})
-
-app.post('/summary', async (req, res) => {
+const generateText = async (text) => {
   try {
-    const text = req.body.text;
-    const classifier = await SummaryPipeline.getInstance();
-    const response = await classifier(text);
-    const responseData = JSON.stringify(response);
-    res.end(responseData);
-    return;
-  } catch (error) {
-    console.error('Error in summary route', error);
-    res.end({ 'error': error });
-  }
-});
-
-app.post('/textGenerator', async (req, res) => {
-  try {
-    const text = req.body.text;
     const classifier = await TextGeneratorPipeline.getInstance();
     const response = await classifier(text);
-    const responseData = JSON.stringify(response);
-    res.end(responseData);
-    return;
-  } catch (error) {
-    console.error('Error in textGenerator route', error);
-    res.end({ 'error': error });
+    return response;
+  } catch (err) {}
+};
+
+const summariseText = async (text) => {
+  try {
+    const classifier = await SummaryPipeline.getInstance();
+    const response = await classifier(text);
+    return response;
+  } catch (err) {}
+};
+
+const mqttClient = mqtt.connect({
+  protocol: process.env.MQTT_PROTOCOL,
+  host: process.env.MQTT_HOST,
+  port: process.env.MQTT_PORT,
+  username: process.env.MQTT_USER,
+  password: process.env.MQTT_PASSWORD,
+  clientId: "mqttjs_" + Math.random().toString(16).substr(2, 8),
+});
+
+mqttClient.on("connect", () => {
+  console.log("Connected to MQTT broker", mqttClient.options.clientId);
+});
+
+mqttClient.subscribe(SummaryTopic, (err) => {
+  if (!err) {
+    console.log("Subscribed to summary topic");
   }
 });
 
-app.listen(port, () => {
-  console.log("node app listening on port: " + port);
+mqttClient.subscribe(GenerateTopic, (err) => {
+  if (!err) {
+    console.log("Subscribed to generate topic");
+  }
 });
 
-
-
-
-
-
+mqttClient.on("message", async (topic, message) => {
+  if (topic === GenerateTopic) {
+    const text = await generateText(message.toString("utf8"));
+    mqttClient.publish("generate/response", JSON.stringify(text));
+  } else if (topic === SummaryTopic) {
+    const text = await summariseText(message.toString("utf8"));
+    mqttClient.publish("summary/response", JSON.stringify(text));
+  } else {
+    return;
+  }
+});
