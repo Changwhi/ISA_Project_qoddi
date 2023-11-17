@@ -14,7 +14,7 @@ app.use(function(req, res, next) {
 });
 
 app.get("/", (req, res) => {
-  res.end({"Lending page": "Hellow world"})
+  res.send({"Landing page": "Hello world"})
 })
 
 app.post('/summary', async (req, res) => {
