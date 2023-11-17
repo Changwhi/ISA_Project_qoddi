@@ -2,7 +2,7 @@ import { pipeline } from '@xenova/transformers';
 
 class SummaryPipeline{
     static task = 'summarization';
-    static model = 'Xenova/distilbart-cnn-6-6';
+    static model = 'ahmedaeb/distilbart-cnn-6-6-optimised';
     static instance = null;
   
     static async getInstance(progress_callback = null) {
