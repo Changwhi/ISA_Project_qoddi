@@ -1,7 +1,7 @@
 import express from 'express';
 import { pipeline } from '@xenova/transformers';
 
-// const { pipeline } = require("@xenova/transformers")
+//const { pipeline } = require("@xenova/transformers")
 // const express = require("express")
 
 
@@ -32,12 +32,15 @@ app.get('/', async (req, res) => {
     // let output = await generator(text, {
     //   max_new_tokens: 100,
     // });
-    // let text = 'I enjoy walking with my cute dog,';
-    // let generator = await pipeline('text-generation', 'Xenova/distilgpt2');
-    // let output = await generator(text);
-    // console.log(output)
-    // const responseData = await pipe(ARTICLE, max_length = 230, min_length = 30, do_sample = false)
-    res.send("dd");
+    //const responseData = await pipe(ARTICLE, max_length = 230, min_length = 30, do_sample = false)
+
+
+    let text = 'I enjoy walking with my cute dog,';
+    let generator = await pipeline('text-generation', 'Xenova/distilgpt2');
+    let output = await generator(text);
+    console.log(output)
+
+    res.send(output);
     return;
   } catch (error) {
     console.error('Error importing @xenova/transformers:', error);
