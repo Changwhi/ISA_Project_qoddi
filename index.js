@@ -23,7 +23,6 @@ app.post('/summary', async (req, res) => {
     const classifier = await SummaryPipeline.getInstance();
     const response = await classifier(text);
     const responseData = JSON.stringify(response);
-    console.log(responseData);
     res.end(responseData);
     return;
   } catch (error) {
