@@ -1,5 +1,6 @@
 import express from 'express';
 import SummaryPipeline from './models/SummaryPipeline.js';
+import TextGeneratorPipeline from './models/TextGeneratorPipeline.js';
 
 const port = process.env.PORT || 3000;
 const app = express();
@@ -27,6 +28,25 @@ app.post('/summary', async (req, res) => {
     return;
   } catch (error) {
     console.error('Error in summary route', error);
+    res.end({ 'error': error });
+  }
+});
+
+app.listen(port, () => {
+  console.log("node app listening on port: " + port);
+});
+
+
+app.post('/textGenerator', async (req, res) => {
+  try {
+    const text = req.body.text;
+    const classifier = await TextGeneratorPipeline.getInstance();
+    const response = await classifier(text);
+    const responseData = JSON.stringify(response);
+    res.end(responseData);
+    return;
+  } catch (error) {
+    console.error('Error in textGenerator route', error);
     res.end({ 'error': error });
   }
 });
