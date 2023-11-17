@@ -32,11 +32,6 @@ app.post('/summary', async (req, res) => {
   }
 });
 
-app.listen(port, () => {
-  console.log("node app listening on port: " + port);
-});
-
-
 app.post('/textGenerator', async (req, res) => {
   try {
     const text = req.body.text;
