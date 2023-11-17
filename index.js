@@ -4,8 +4,6 @@ import { pipeline } from '@xenova/transformers';
 //const { pipeline } = require("@xenova/transformers")
 // const express = require("express")
 
-
-
 // const express = require('express');
 // const router = include('routes/router')
 const port = process.env.PORT || 3000;
