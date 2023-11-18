@@ -46,13 +46,6 @@ app.post("/generate", validateRequest, async (req, res) => {
   }
 });
 
-app.get("/", (req, res) => {
-  res.send("Hello World!");
-  return;
-});
-
-mqttClient.subscribe(GenerateTopic, (err) => {
-  if (!err) {
-    console.log("Subscribed to generate topic");
-  }
+app.listen(port, () => {
+  console.log("Listening on PORT:", port);
 });
