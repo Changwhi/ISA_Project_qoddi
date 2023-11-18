@@ -1,58 +1,58 @@
-import "dotenv/config";
-import mqtt from "mqtt";
-import { GenerateTopic, SummaryTopic } from "./constants.js";
+import express from "express";
+import cors from "cors";
 import SummaryPipeline from "./models/SummaryPipeline.js";
 import TextGeneratorPipeline from "./models/TextGeneratorPipeline.js";
 
-const generateText = async (text) => {
-  try {
-    const classifier = await TextGeneratorPipeline.getInstance();
-    const response = await classifier(text);
-    return response;
-  } catch (err) {}
-};
+const port = process.env.PORT || 3000;
+const app = express();
 
-const summariseText = async (text) => {
-  try {
-    const classifier = await SummaryPipeline.getInstance();
-    const response = await classifier(text);
-    return response;
-  } catch (err) {}
-};
-
-const mqttClient = mqtt.connect({
-  protocol: process.env.MQTT_PROTOCOL,
-  host: process.env.MQTT_HOST,
-  port: process.env.MQTT_PORT,
-  username: process.env.MQTT_USER,
-  password: process.env.MQTT_PASSWORD,
-  clientId: "mqttjs_" + Math.random().toString(16).substr(2, 8),
-});
-
-mqttClient.on("connect", () => {
-  console.log("Connected to MQTT broker", mqttClient.options.clientId);
-});
-
-mqttClient.subscribe(SummaryTopic, (err) => {
-  if (!err) {
-    console.log("Subscribed to summary topic");
+const validateRequest = (req, res, next) => {
+  if (!req.body.text) {
+    return res.status(400).send({ error: "No text provided" });
   }
+  next();
+};
+
+app.use(express.json());
+app.use(
+  cors({
+    methods: "POST, GET",
+  })
+);
+
+app.post("/summarise", validateRequest, async (req, res) => {
+  try {
+    const text = req.body.text;
+    const pipeline = await SummaryPipeline.getInstance();
+    const out = await pipeline(text);
+    res.json(out);
+    return;
+  } catch (error) {
+    console.error("Error in summary route", error);
+    return res.status(500).send({ error: error });
+  }
+});
+
+app.post("/generate", validateRequest, async (req, res) => {
+  try {
+    const text = req.body.text;
+    const pipeline = await TextGeneratorPipeline.getInstance();
+    const out = await pipeline(text);
+    res.json(out);
+    return;
+  } catch (error) {
+    console.error("Error in textGenerator route", error);
+    return res.status(500).send({ error: error });
+  }
+});
+
+app.get("/", (req, res) => {
+  res.send("Hello World!");
+  return;
 });
 
 mqttClient.subscribe(GenerateTopic, (err) => {
   if (!err) {
     console.log("Subscribed to generate topic");
-  }
-});
-
-mqttClient.on("message", async (topic, message) => {
-  if (topic === GenerateTopic) {
-    const text = await generateText(message.toString("utf8"));
-    mqttClient.publish("generate/response", JSON.stringify(text));
-  } else if (topic === SummaryTopic) {
-    const text = await summariseText(message.toString("utf8"));
-    mqttClient.publish("summary/response", JSON.stringify(text));
-  } else {
-    return;
   }
 });
