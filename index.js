@@ -17,7 +17,7 @@ app.use(express.json());
 app.use(
   cors({
     methods: "POST, GET",
-  })
+  }),
 );
 
 app.post("/summarise", validateRequest, async (req, res) => {
@@ -25,7 +25,7 @@ app.post("/summarise", validateRequest, async (req, res) => {
     const text = req.body.text;
     const pipeline = await SummaryPipeline.getInstance();
     const out = await pipeline(text);
-    res.json(out);
+    res.json(out[0]);
     return;
   } catch (error) {
     console.error("Error in summary route", error);
