@@ -1,5 +1,4 @@
 import express from "express";
-import cors from "cors";
 import SummaryPipeline from "./models/SummaryPipeline.js";
 import TextGeneratorPipeline from "./models/TextGeneratorPipeline.js";
 
