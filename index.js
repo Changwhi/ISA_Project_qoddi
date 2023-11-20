@@ -14,11 +14,6 @@ const validateRequest = (req, res, next) => {
 };
 
 app.use(express.json());
-app.use(
-  cors({
-    methods: "POST, GET",
-  }),
-);
 
 app.post("/summarise", validateRequest, async (req, res) => {
   try {
