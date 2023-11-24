@@ -1,4 +1,8 @@
 import express from "express";
+import pkg from "express-ipfilter";
+import SummaryPipeline from "./SummaryPipeline.js";
+import { errorHandler } from "./error.handler.js";
+const { IpFilter } = pkg;
 
 const port = process.env.PORT || 3000;
 const app = express();
@@ -10,6 +14,8 @@ const validateRequest = (req, res, next) => {
   next();
 };
 
+app.use(IpFilter([process.env.WHITELIST_IP], { mode: "allow" }));
+
 app.use(express.json());
 
 app.post("/summarise", validateRequest, async (req, res) => {
@@ -18,13 +24,13 @@ app.post("/summarise", validateRequest, async (req, res) => {
     const pipeline = await SummaryPipeline.getInstance();
     const out = await pipeline(text);
     res.json(out[0]);
-    return;
   } catch (error) {
     console.error("Error in summary route", error);
     return res.status(500).send({ error: error });
   }
 });
 
+app.use(errorHandler);
 
 app.listen(port, () => {
   console.log("Listening on PORT:", port);
