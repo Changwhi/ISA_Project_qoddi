@@ -23,7 +23,7 @@ app.post("/summarise", validateRequest, async (req, res) => {
     const text = req.body.text;
     const pipeline = await SummaryPipeline.getInstance();
     const out = await pipeline(text);
-    res.json(out[0]);
+    res.json({ result_text: out[0].summary_text });
   } catch (error) {
     console.error("Error in summary route", error);
     return res.status(500).send({ error: error });
